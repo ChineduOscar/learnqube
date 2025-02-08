@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Hero from "../component/hero";
 import PopluarTopics from "../component/popluarTopics";
 import TrendingCourses from "../component/trendingCourses";
