@@ -1,24 +1,61 @@
 'use client'
 import React, { useState } from 'react';
+import axios from 'axios';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { Lock, Eye, EyeOff, Mail, UserCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { toast } from 'react-toastify';
 import logo from '../../assets/LearnQube.png';
 import focused from '../../assets/focused.jpg';
 import GoogleIcon from '../../assets/googleIcon';
+import axiosInstance from '../../config';
 
-export default function SignupPage() {
+function SignupPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Add your signup logic here
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+  });
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.id]: e.target.value });
   };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await axiosInstance.post("/auth/register", {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+      });
+      toast.success("Account created successfully");
+      router.push('/dashboard');
+      console.log(formData)
+    } 
+    catch (error) {
+      console.log("Register Failed:", error.response?.data?.message || error.message);
+      toast.error("Registration failed. Try again.");
+    }
+  };
+
+  const handleGoogleSignup = async () => {
+    try {
+      window.location.href = 'https://learnqubeapi.onrender.com/api/v1/auth/google/callback';
+    } catch (error) {
+      console.log("Google Signup Failed:", error.response?.data?.message || error.message);
+      toast.error("Registration failed. Try again.");
+    }
+  };
+  
 
   return (
     <div className="w-full min-h-screen flex items-center justify-center md:p-4 bg-gray-50">
@@ -55,17 +92,19 @@ export default function SignupPage() {
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <div className="relative">
+                  <Label htmlFor="name">Name</Label>
+                  <div className="relative">
                     <Input
-                    id="name"
-                    type="text"
-                    placeholder="Enter your name"
-                    className="pl-10"
-                    required
+                      id="name"
+                      type="text"
+                      placeholder="Enter your name"
+                      className="pl-10"
+                      required
+                      value={formData.name}
+                      onChange={handleChange}
                     />
                     <UserCircle className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                </div>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -77,6 +116,8 @@ export default function SignupPage() {
                       placeholder="Enter your email"
                       className="pl-10"
                       required
+                      value={formData.email}
+                      onChange={handleChange}
                     />
                     <Mail className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
                   </div>
@@ -91,6 +132,8 @@ export default function SignupPage() {
                       placeholder="Create password"
                       className="pl-10 pr-10"
                       required
+                      value={formData.password}
+                      onChange={handleChange}
                     />
                     <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
                     <button
@@ -112,6 +155,8 @@ export default function SignupPage() {
                       placeholder="Confirm password"
                       className="pl-10 pr-10"
                       required
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
                     />
                     <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
                     <button
@@ -146,7 +191,7 @@ export default function SignupPage() {
                   type="button"
                   variant="outline"
                   className="w-full"
-                  onClick={() => {/* Add Google signup logic */}}
+                  onClick={() => {handleGoogleSignup()}}
                 >
                   <GoogleIcon />
                   Continue with Google
@@ -179,3 +224,5 @@ export default function SignupPage() {
     </div>
   );
 }
+
+export default SignupPage;

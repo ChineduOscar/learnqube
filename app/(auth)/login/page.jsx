@@ -1,23 +1,51 @@
 'use client'
 import React, { useState } from 'react';
+import axios from 'axios';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { toast } from 'react-toastify';
 import { User, Lock, Eye, EyeOff } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import logo from '../../assets/LearnQube.png'
-import focused from '../../assets/focused.jpg'
+import logo from '../../assets/LearnQube.png';
+import focused from '../../assets/focused.jpg';
 import GoogleIcon from '../../assets/googleIcon';
 
 export default function LoginPage() {
+  const router = useRouter();
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    rememberMe: false,
+  });
+
   const [showPassword, setShowPassword] = useState(false);
-  
-  const handleSubmit = (e: React.FormEvent) => {
+
+  // Handle input change
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
+  // Handle form submission
+  const handleSubmit = async(e) => {
     e.preventDefault();
-    // Add your login logic here
+    try {
+      await axios.post("/login", formData);
+      toast.success("Login successful");
+      router.back();
+    } 
+    catch (error) {
+      console.log("Login Failed:", error.response?.data?.message || error.message);
+      toast.error("Login failed. Try again.");
+    }
   };
 
   return (
@@ -54,20 +82,25 @@ export default function LoginPage() {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Email Input */}
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <div className="relative">
                     <Input
                       id="email"
+                      name="email"
                       type="email"
                       placeholder="Enter your email"
                       className="pl-10"
+                      value={formData.email}
+                      onChange={handleChange}
                       required
                     />
                     <User className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
                   </div>
                 </div>
                 
+                {/* Password Input */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="password">Password</Label>
@@ -78,9 +111,12 @@ export default function LoginPage() {
                   <div className="relative">
                     <Input
                       id="password"
+                      name="password"
                       type={showPassword ? "text" : "password"}
                       placeholder="Enter your password"
                       className="pl-10 pr-10"
+                      value={formData.password}
+                      onChange={handleChange}
                       required
                     />
                     <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
@@ -94,8 +130,14 @@ export default function LoginPage() {
                   </div>
                 </div>
 
+                {/* Remember Me Checkbox */}
                 <div className="flex items-center space-x-2">
-                  <Checkbox id="remember" />
+                  <Checkbox 
+                    id="remember" 
+                    name="rememberMe" 
+                    checked={formData.rememberMe}
+                    onCheckedChange={(checked) => setFormData({ ...formData, rememberMe: checked })}
+                  />
                   <label
                     htmlFor="remember"
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -104,6 +146,7 @@ export default function LoginPage() {
                   </label>
                 </div>
 
+                {/* Submit Button */}
                 <Button 
                   type="submit" 
                   className="w-full text-white bg-[#481895]"
@@ -111,6 +154,7 @@ export default function LoginPage() {
                   Sign in
                 </Button>
 
+                {/* Divider */}
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
                     <span className="w-full border-t" />
@@ -122,6 +166,7 @@ export default function LoginPage() {
                   </div>
                 </div>
 
+                {/* Google Login Button */}
                 <Button
                   type="button"
                   variant="outline"
@@ -132,6 +177,7 @@ export default function LoginPage() {
                   Continue with Google
                 </Button>
 
+                {/* Signup Link */}
                 <div className="text-center text-sm">
                   Don&apos;t have an account?{' '}
                   <Link href="/signup" className="hover:text-blue-700 text-[#481895]">

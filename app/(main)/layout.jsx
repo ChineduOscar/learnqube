@@ -1,11 +1,7 @@
 import Header from "../common/header";
 import Footer from "../common/footer";
 
-export default function MainLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function MainLayout({ children }) {
   return (
     <>
       <Header />
