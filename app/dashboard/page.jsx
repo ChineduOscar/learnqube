@@ -43,7 +43,7 @@ const Dashboard = () => {
   return (
     <div>
       <h1>Welcome, {name ? name : "Guest"}!</h1>
-      <>lo</>
+      <div>lo</div>
       {role && <p>Your role is: {role}</p>}
       {token ? <p>Your token is: {token}</p> : <p>Loading...</p>}
     </div>
