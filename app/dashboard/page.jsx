@@ -1,10 +1,23 @@
 'use client'
+import { Suspense } from 'react';
+import DashboardContent from './DashboardContent';
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<div className="p-6">Loading...</div>}>
+      <DashboardContent />
+    </Suspense>
+  );
+}
+
+// DashboardContent.js
+'use client'
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Copy, Check } from "lucide-react";
 import Cookies from "js-cookie";
 
-const Dashboard = () => {
+const DashboardContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [token, setToken] = useState(null);
@@ -114,5 +127,3 @@ const Dashboard = () => {
     </div>
   );
 };
-
-export default Dashboard;
