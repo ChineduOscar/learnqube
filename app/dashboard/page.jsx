@@ -20,13 +20,9 @@ const Dashboard = () => {
       });
       setToken(urlToken);
 
-      // Safely remove token from URL
-      const params = new URLSearchParams(searchParams);
-      params.delete('token');
-      const path = `/dashboard`;
-
-      // Use push instead of replace to avoid cross-origin issues
-      router.push(path, { scroll: false });
+      // Instead of manipulating history directly, use window.location
+      // This avoids cross-origin issues
+      window.location.href = `${window.location.origin}/dashboard`;
     } else {
       // Read token from cookies
       const storedToken = Cookies.get("token");
