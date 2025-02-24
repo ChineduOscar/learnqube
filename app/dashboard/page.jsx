@@ -13,16 +13,20 @@ const Dashboard = () => {
 
     if (urlToken) {
       // Save token in cookies
-      document.cookie = `token=${urlToken}; path=/; secure; samesite=None;`;
+      Cookies.set('token', urlToken, { 
+        secure: true, 
+        sameSite: 'None',
+        path: '/'
+      });
       setToken(urlToken);
 
-      setTimeout(() => {
-        // Remove token from the URL (use relative path)
-        const params = new URLSearchParams(searchParams);
-        params.delete("token");
+      // Safely remove token from URL
+      const params = new URLSearchParams(searchParams);
+      params.delete('token');
+      const path = `/dashboard`;
 
-        router.replace(`/dashboard${params.toString() ? `?${params.toString()}` : ""}`, { scroll: false });
-      }, 1000);
+      // Use push instead of replace to avoid cross-origin issues
+      router.push(path, { scroll: false });
     } else {
       // Read token from cookies
       const storedToken = Cookies.get("token");
