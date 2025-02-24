@@ -1,35 +1,37 @@
 'use client'
 import { useEffect, useState } from "react";
-import axiosInstance from '../config';
 import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
 
 const Dashboard = () => {
   const router = useRouter();
   const [token, setToken] = useState(null);
 
   useEffect(() => {
-    const fetchToken = async () => {
-      try {
-        const response = await axiosInstance.get("/auth/get-token", {
-          withCredentials: true,
-        });
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlToken = urlParams.get("token");
 
-        if (response.data.token) {
-          setToken(response.data.token);
-          console.log("Token retrieved:", response.data.token);
-        } else {
-          router.push("/login");
-        }
-      } catch (error) {
-        console.error("Error fetching token:", error);
-        router.push("/login");
-      }
-    };
+    if (urlToken) {
+      document.cookie = `token=${urlToken}; path=/; secure; samesite=None;`;
 
-    fetchToken();
+      setTimeout(() => {
+        router.replace("/dashboard");
+      }, 2000);
+    }
+
+    // Read token from cookies
+    const storedToken = Cookies.get("token");
+    if (storedToken) {
+      setToken(storedToken);
+    }
   }, []);
 
-  return <div>Welcome to the Dashboard! Token: {token}</div>;
+  return (
+    <div>
+      <h1>Welcome!</h1>
+      {token ? <p>Your token is: {token}</p> : <p>Loading...</p>}
+    </div>
+  );
 };
 
 export default Dashboard;
