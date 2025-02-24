@@ -1,23 +1,10 @@
 'use client'
-import { Suspense } from 'react';
-import DashboardContent from './DashboardContent';
-
-export default function DashboardPage() {
-  return (
-    <Suspense fallback={<div className="p-6">Loading...</div>}>
-      <DashboardContent />
-    </Suspense>
-  );
-}
-
-// DashboardContent.js
-'use client'
 import { useEffect, useState } from "react";
+import { Suspense } from 'react';
 import { useRouter, useSearchParams } from "next/navigation";
 import { Copy, Check } from "lucide-react";
 import Cookies from "js-cookie";
-
-const DashboardContent = () => {
+const Dashboard = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [token, setToken] = useState(null);
@@ -86,44 +73,48 @@ const DashboardContent = () => {
   };
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Welcome{userName ? `, ${userName}!` : '!'}</h1>
-      {token ? (
-        <div className="space-y-4">
-          <div className="bg-gray-100 p-4 rounded-lg">
-            <p className="font-medium">User Details:</p>
-            <p>Name: {userName || 'Not available'}</p>
-            <p>Role: {userRole || 'Not available'}</p>
-          </div>
-          
-          <div className="bg-gray-100 p-4 rounded-lg">
-            <div className="flex items-center justify-between mb-2">
-              <p className="font-medium">Token:</p>
-              <button
-                onClick={copyToken}
-                className="flex items-center gap-2 px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-              >
-                {copied ? (
-                  <>
-                    <Check size={16} />
-                    Copied!
-                  </>
-                ) : (
-                  <>
-                    <Copy size={16} />
-                    Copy Token
-                  </>
-                )}
-              </button>
+    <Suspense fallback={<div className="p-6">Loading...</div>}>
+      <div className="p-6">
+        <h1 className="text-2xl font-bold mb-4">Welcome{userName ? `, ${userName}!` : '!'}</h1>
+        {token ? (
+          <div className="space-y-4">
+            <div className="bg-gray-100 p-4 rounded-lg">
+              <p className="font-medium">User Details:</p>
+              <p>Name: {userName || 'Not available'}</p>
+              <p>Role: {userRole || 'Not available'}</p>
             </div>
-            <div className="bg-white p-3 rounded border break-all">
-              <code className="text-sm">{token}</code>
+            
+            <div className="bg-gray-100 p-4 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <p className="font-medium">Token:</p>
+                <button
+                  onClick={copyToken}
+                  className="flex items-center gap-2 px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                >
+                  {copied ? (
+                    <>
+                      <Check size={16} />
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <Copy size={16} />
+                      Copy Token
+                    </>
+                  )}
+                </button>
+              </div>
+              <div className="bg-white p-3 rounded border break-all">
+                <code className="text-sm">{token}</code>
+              </div>
             </div>
           </div>
-        </div>
-      ) : (
-        <p>Loading...</p>
-      )}
-    </div>
+        ) : (
+          <p>Loading...</p>
+        )}
+      </div>
+    </Suspense>
   );
 };
+
+export default Dashboard
