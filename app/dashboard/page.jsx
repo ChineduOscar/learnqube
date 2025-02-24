@@ -1,10 +1,8 @@
 'use client'
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 
 const Dashboard = () => {
-  const router = useRouter();
   const [token, setToken] = useState(null);
 
   useEffect(() => {
@@ -15,14 +13,14 @@ const Dashboard = () => {
       document.cookie = `token=${urlToken}; path=/; secure; samesite=None;`;
 
       setTimeout(() => {
-        router.replace("/dashboard");
-      }, 2000);
-    }
-
-    // Read token from cookies
-    const storedToken = Cookies.get("token");
-    if (storedToken) {
-      setToken(storedToken);
+        window.history.replaceState({}, "", window.location.pathname);
+        setToken(urlToken);
+      }, 1000);
+    } else {
+      const storedToken = Cookies.get("token");
+      if (storedToken) {
+        setToken(storedToken);
+      }
     }
   }, []);
 
