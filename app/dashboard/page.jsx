@@ -7,34 +7,43 @@ const Dashboard = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [token, setToken] = useState(null);
+  const [name, setName] = useState(null);
+  const [role, setRole] = useState(null);
 
   useEffect(() => {
     const urlToken = searchParams.get("token");
+    const urlName = searchParams.get("name");
+    const urlRole = searchParams.get("role");
 
     if (urlToken) {
-      // Save token in cookies
-      Cookies.set('token', urlToken, { 
-        secure: true, 
-        sameSite: 'None',
-        path: '/'
-      });
-      setToken(urlToken);
+      // Save values in cookies
+      Cookies.set("token", urlToken, { secure: true, sameSite: "None", path: "/" });
+      Cookies.set("name", urlName, { secure: true, sameSite: "None", path: "/" });
+      Cookies.set("role", urlRole, { secure: true, sameSite: "None", path: "/" });
 
-      // Instead of manipulating history directly, use window.location
-      // This avoids cross-origin issues
+      // Update state
+      setToken(urlToken);
+      setName(urlName);
+      setRole(urlRole);
+
+      // Redirect without query params
       window.location.href = `${window.location.origin}/dashboard`;
     } else {
-      // Read token from cookies
+      // Read from cookies
       const storedToken = Cookies.get("token");
-      if (storedToken) {
-        setToken(storedToken);
-      }
+      const storedName = Cookies.get("name");
+      const storedRole = Cookies.get("role");
+
+      if (storedToken) setToken(storedToken);
+      if (storedName) setName(storedName);
+      if (storedRole) setRole(storedRole);
     }
-  }, [searchParams, router]);
+  }, [searchParams]);
 
   return (
     <div>
-      <h1>Welcome!</h1>
+      <h1>Welcome, {name ? name : "Guest"}!</h1>
+      {role && <p>Your role is: {role}</p>}
       {token ? <p>Your token is: {token}</p> : <p>Loading...</p>}
     </div>
   );
