@@ -203,7 +203,7 @@ const DashboardComponent = () => {
                           alt={course.title}
                           width={300} 
                           height={200}
-                          className="w-full h-full object-cover"
+                          className="object-cover"
                         />
                       </div>
                       <div className="sm:w-2/3 p-4 flex flex-col justify-between">
