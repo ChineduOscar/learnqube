@@ -1,6 +1,8 @@
 import React from 'react'
 import Image from 'next/image'
+import { User } from 'lucide-react';
 import { Lora } from 'next/font/google';
+import Cookies from "js-cookie";
 import Link from 'next/link';
 import logo from '../assets/LearnQube.png'
 
@@ -10,6 +12,8 @@ const lora = Lora({
   });
 
 const Header = () => {
+  const token = Cookies.get('token')
+
   return (
     <div className={`${lora.className} flex justify-between items-center px-6 md:px-12 lg:px-36 py-4 md:py-6 md:mb-10`}>
         <Link href={'/'}>
@@ -28,8 +32,8 @@ const Header = () => {
         </Link>
 
         <div className='flex items-center gap-4 md:gap-8'>
-            <Link href='/login'>
-                <div className='text-[18px] md:text-xl font-bold text-[#481895] hover:text-black'>Login</div>
+            <Link href={token ? '/dashboard': '/login'}>
+                <div className='text-[18px] md:text-xl font-bold text-[#481895] hover:text-black'><User size={20} /></div>
             </Link>
             <Link href='/login'>
               <button className="hidden md:block btn btn-active btn-neutral text-[18px] md:text-xl bg-[#481895] text-white">Get started</button>
