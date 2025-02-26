@@ -6,10 +6,9 @@ import Image from "next/image";
 import Link from "next/link";
 import Cookies from "js-cookie";
 import { Lora } from 'next/font/google';
-import logo from '../assets/LearnQube.png';
-import tube1 from '../assets/designThumbnail.jpg';
-import tube2 from '../assets/websiteThumbnail.jpg';
-import tube3 from '../assets/photographyThumbnail.jpg';
+import tube1 from '/designThumbnail.jpg';
+import tube2 from '/websiteThumbnail.jpg';
+import tube3 from '/photographyThumbnail.jpg';
 
 const lora = Lora({
   weight: ['400', '700'],
@@ -201,7 +200,9 @@ const DashboardComponent = () => {
                       <div className="sm:w-1/3 h-52 sm:h-auto relative">
                         <Image
                           src={course.thumbnail} 
-                          alt={course.title} 
+                          alt={course.title}
+                          width={300} 
+                          height={200}
                           className="w-full h-full object-cover"
                         />
                       </div>
