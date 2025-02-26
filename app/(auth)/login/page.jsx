@@ -1,19 +1,20 @@
 'use client'
 import React, { useState } from 'react';
-import axios from 'axios';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
-import { User, Lock, Eye, EyeOff } from 'lucide-react';
+import { User, Lock, Eye, EyeOff, Users } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import Cookies from "js-cookie";
 import logo from '../../assets/LearnQube.png';
 import focused from '../../assets/focused.jpg';
 import GoogleIcon from '../../assets/googleIcon';
+import axiosInstance from '@/app/config';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -24,7 +25,7 @@ export default function LoginPage() {
   });
 
   const [showPassword, setShowPassword] = useState(false);
-
+  const [isLoading, setIsLoading] = useState(false);
   // Handle input change
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -34,16 +35,46 @@ export default function LoginPage() {
     }));
   };
 
-  // Handle form submission
   const handleSubmit = async(e) => {
     e.preventDefault();
     try {
-      await axios.post("/login", formData);
-      toast.success("Login successful");
-      router.back();
+      const response = await axiosInstance.post("/auth/login", formData);
+      setIsLoading(false);
+      Cookies.set('token', response?.data?.token, { 
+        secure: true, 
+        sameSite: 'None',
+        path: '/'
+      });
+      Cookies.set('userName', response?.data?.user?.name, { 
+        secure: true, 
+        sameSite: 'None',
+        path: '/'
+      });
+      Cookies.set('userEmail', response?.data?.user?.email, { 
+        secure: true, 
+        sameSite: 'None',
+        path: '/'
+      });
+      Cookies.set('userRole', response?.data?.user?.role, { 
+        secure: true, 
+        sameSite: 'None',
+        path: '/'
+      });
+      toast.success("Login successfully");
+      router.push('/dashboard');
     } 
     catch (error) {
       console.log("Login Failed:", error.response?.data?.message || error.message);
+      setIsLoading(false);
+      toast.error("Login failed. Try again.");
+    }
+  };
+
+  const handleGoogleSignup = async () => {
+    try {
+      window.location.href = 'https://learnqubeapi.onrender.com/api/v1/auth/google/callback';
+    } catch (error) {
+      console.log("Google Login Failed:", error.response?.data?.message || error.message);
       toast.error("Login failed. Try again.");
     }
   };
@@ -146,15 +177,14 @@ export default function LoginPage() {
                   </label>
                 </div>
 
-                {/* Submit Button */}
                 <Button 
                   type="submit" 
                   className="w-full text-white bg-[#481895]"
+                  disabled={isLoading}
                 >
-                  Sign in
+                   {isLoading ? <Loader2 className="animate-spin w-5 h-5" /> : "Sign In"}
                 </Button>
 
-                {/* Divider */}
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
                     <span className="w-full border-t" />
@@ -171,7 +201,7 @@ export default function LoginPage() {
                   type="button"
                   variant="outline"
                   className="w-full"
-                  onClick={() => {/* Add Google login logic */}}
+                  onClick={handleGoogleSignup}
                 >
                   <GoogleIcon />
                   Continue with Google

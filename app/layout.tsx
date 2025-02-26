@@ -1,3 +1,4 @@
+import Providers from './providers'
 import type { Metadata } from "next";
 import { Poppins } from 'next/font/google';
 import ToastProvider from "./component/toastProvider";
@@ -21,8 +22,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={poppins.className}>
-        {children}
-        <ToastProvider />
+        <Providers>
+            {children}
+            <ToastProvider />
+        </Providers>
       </body>
     </html>
   );

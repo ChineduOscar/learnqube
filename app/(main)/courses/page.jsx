@@ -1,100 +1,79 @@
 'use client'
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import Image from 'next/image';
 import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import photographyThumbnail from '../../assets/photographyThumbnail.jpg';
-import designThumbnail from '../../assets/designThumbnail.jpg';
-import websiteThumbnail from '../../assets/websiteThumbnail.jpg';
-
-// Extended course data
-const allCourses = [
-    {
-        id: 1,
-        title: "React Crash Course",
-        category: "Website Development",
-        author: "Chinedu Oscar",
-        thumbnail: websiteThumbnail,
-        price: 49.99,
-        rating: 4.8,
-        students: 1234
-    },
-    {
-        id: 2,
-        title: "Mastering UI/UX Design",
-        category: "Design",
-        author: "Chinedu Oscar",
-        thumbnail: designThumbnail,
-        price: 59.99,
-        rating: 4.7,
-        students: 856
-    },
-    {
-        id: 3,
-        title: "Mastering Portrait Photography",
-        category: "Photography",
-        author: "Chinedu Oscar",
-        thumbnail: photographyThumbnail,
-        price: 39.99,
-        rating: 4.9,
-        students: 2341
-    },
-    // Adding more courses with the same structure
-    {
-        id: 4,
-        title: "Advanced JavaScript Concepts",
-        category: "Website Development",
-        author: "Chinedu Oscar",
-        thumbnail: websiteThumbnail,
-        price: 69.99,
-        rating: 4.6,
-        students: 1567
-    },
-    {
-        id: 5,
-        title: "Mobile App Design Fundamentals",
-        category: "Design",
-        author: "Chinedu Oscar",
-        thumbnail: designThumbnail,
-        price: 44.99,
-        rating: 4.5,
-        students: 923
-    },
-    {
-        id: 6,
-        title: "Landscape Photography Masterclass",
-        category: "Photography",
-        author: "Chinedu Oscar",
-        thumbnail: photographyThumbnail,
-        price: 54.99,
-        rating: 4.7,
-        students: 1432
-    }
-];
-
-const categories = ["All", "Website Development", "Design", "Photography"];
+import { useRouter, useSearchParams } from 'next/navigation';
+import getYouTubeThumbnail from '../../utils/videoThumnail';
 
 const AllCoursesPage = () => {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const courses = useSelector((state) => state.courses.courses);
+    const [processedCourses, setProcessedCourses] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
+    const [categories, setCategories] = useState(["All"]);
     const [selectedCategory, setSelectedCategory] = useState("All");
     const [currentPage, setCurrentPage] = useState(1);
     const coursesPerPage = 6;
 
+    // Extract all unique categories from courses
+    useEffect(() => {
+        if (courses?.length > 0) {
+            // Extract and create unique categories list
+            const uniqueCategories = new Set();
+            courses.forEach(course => {
+                if (course.category && course.category.name) {
+                    uniqueCategories.add(course.category.name);
+                }
+            });
+            setCategories(["All", ...Array.from(uniqueCategories)]);
+            
+            // Process courses to add thumbnails
+            const updatedCourses = courses.map(course => ({
+                ...course,
+                thumbnail: getYouTubeThumbnail(course.videoUrl),
+            }));
+            setProcessedCourses(updatedCourses);
+            
+            // Check for category param in URL
+            const categoryParam = searchParams.get('category');
+            if (categoryParam) {
+                // Find the category name based on the ID
+                const matchingCourse = courses.find(course => 
+                    course.category && course.category._id === categoryParam
+                );
+                if (matchingCourse && matchingCourse.category.name) {
+                    setSelectedCategory(matchingCourse.category.name);
+                }
+            }
+        }
+    }, [courses, searchParams]);
+
     // Filter courses based on search and category
-    const filteredCourses = allCourses.filter(course => {
+    const filteredCourses = processedCourses.filter(course => {
         const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                            course.author.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesCategory = selectedCategory === "All" || course.category === selectedCategory;
+                             (course.tutor && course.tutor.toLowerCase().includes(searchQuery.toLowerCase()));
+                             
+        const matchesCategory = selectedCategory === "All" || 
+                               (course.category && course.category.name === selectedCategory);
+                               
         return matchesSearch && matchesCategory;
     });
 
-    // Calculate pagination
+    // Pagination logic
     const indexOfLastCourse = currentPage * coursesPerPage;
     const indexOfFirstCourse = indexOfLastCourse - coursesPerPage;
     const currentCourses = filteredCourses.slice(indexOfFirstCourse, indexOfLastCourse);
     const totalPages = Math.ceil(filteredCourses.length / coursesPerPage);
+
+    // Handle course click
+    const handleCourseClick = (courseId) => {
+        router.push(`/courses/${courseId}`);
+    };
 
     return (
         <div className="px-4 py-8">
@@ -102,6 +81,8 @@ const AllCoursesPage = () => {
                 <h1 className="text-3xl font-bold text-[#481895] mb-2">All Courses</h1>
                 <p className="text-gray-600">Explore our wide range of courses and start learning today</p>
             </div>
+            
+            {/* Search & Category Filter */}
             <div className="flex flex-col md:flex-row gap-4 mb-8">
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
@@ -113,15 +94,13 @@ const AllCoursesPage = () => {
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
-                <div className="flex gap-2 overflow-x-auto">
+                <div className="flex gap-2 overflow-x-auto pb-2">
                     {categories.map((category) => (
                         <Button
                             key={category}
                             variant={selectedCategory === category ? "default" : "outline"}
                             onClick={() => setSelectedCategory(category)}
-                            className={`whitespace-nowrap ${
-                                selectedCategory === category ? "bg-[#481895]" : ""
-                            }`}
+                            className={`whitespace-nowrap ${selectedCategory === category ? "bg-[#481895]" : ""}`}
                         >
                             {category}
                         </Button>
@@ -130,30 +109,49 @@ const AllCoursesPage = () => {
             </div>
 
             {/* Courses Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {currentCourses.map((course) => (
-                    <Card key={course.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                        <div className="relative h-48">
-                            <Image
-                                src={course.thumbnail}
-                                alt={course.title}
-                                layout="fill"
-                                objectFit="cover"
-                            />
-                        </div>
-                        <CardContent className="p-4">
-                            <p className="mb-2 text-sm font-medium text-white bg-[#545454] rounded-lg px-2 w-fit">
-                                {course.category}
-                            </p>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-1">{course.title}</h3>
-                            <p className="text-sm text-gray-600 mb-2">By {course.author}</p>
-                            <Button className="w-full bg-[#481895]">
-                                Enroll Now
-                            </Button>
-                        </CardContent>
-                    </Card>
-                ))}
-            </div>
+            {currentCourses.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {currentCourses.map((course) => (
+                        <Card 
+                            key={course._id} 
+                            className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                            onClick={() => handleCourseClick(course._id)}
+                        >
+                            <div className="relative h-48 w-full">
+                                <Image
+                                    src={course.thumbnail || "/placeholder-course.jpg"}
+                                    alt={course.title}
+                                    fill
+                                    style={{ objectFit: "cover" }}
+                                    className="rounded-t-lg"
+                                />
+                            </div>
+                            <CardContent className="p-4">
+                                {course.category && course.category.name && (
+                                    <p className="mb-2 text-sm font-medium text-white bg-[#545454] rounded-lg px-2 py-1 w-fit">
+                                        {course.category.name}
+                                    </p>
+                                )}
+                                <h3 className="text-lg font-semibold text-gray-900 mb-1">{course.title}</h3>
+                                <p className="text-sm text-gray-600 mb-2">By {course.tutor}</p>
+                                <div className="flex justify-between items-center mt-2">
+                                    <span className="font-bold text-[#481895]">${course.price?.toFixed(2) || 'Free'}</span>
+                                    <Button className="bg-[#481895]" onClick={(e) => {
+                                        e.stopPropagation();
+                                        // Add enrollment logic here
+                                    }}>
+                                        Enroll Now
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            ) : (
+                <div className="text-center py-16">
+                    <p className="text-xl text-gray-500">No courses found matching your criteria.</p>
+                </div>
+            )}
 
             {/* Pagination */}
             {totalPages > 1 && (

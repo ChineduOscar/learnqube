@@ -1,15 +1,15 @@
 'use client'
 import React, { useState } from 'react';
-import axios from 'axios';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Lock, Eye, EyeOff, Mail, UserCircle } from 'lucide-react';
+import { Lock, Eye, EyeOff, Mail, UserCircle, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'react-toastify';
+import Cookies from "js-cookie";
 import logo from '../../assets/LearnQube.png';
 import focused from '../../assets/focused.jpg';
 import GoogleIcon from '../../assets/googleIcon';
@@ -19,6 +19,7 @@ function SignupPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -31,18 +32,43 @@ function SignupPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
     try {
-      await axiosInstance.post("/auth/register", {
+      const response = await axiosInstance.post("/auth/register", {
         name: formData.name,
         email: formData.email,
         password: formData.password,
       });
+
+      setIsLoading(false);
+      Cookies.set('token', response?.data?.token, { 
+        secure: true, 
+        sameSite: 'None',
+        path: '/'
+      });
+      Cookies.set('userName', response?.data?.user?.name, { 
+        secure: true, 
+        sameSite: 'None',
+        path: '/'
+      });
+      Cookies.set('userEmail', response?.data?.user?.email, { 
+        secure: true, 
+        sameSite: 'None',
+        path: '/'
+      });
+      Cookies.set('userRole', response?.data?.user?.role, { 
+        secure: true, 
+        sameSite: 'None',
+        path: '/'
+      });
+      console.log(response)
       toast.success("Account created successfully");
       router.push('/dashboard');
       console.log(formData)
     } 
     catch (error) {
       console.log("Register Failed:", error.response?.data?.message || error.message);
+      setIsLoading(false);
       toast.error("Registration failed. Try again.");
     }
   };
@@ -172,8 +198,9 @@ function SignupPage() {
                 <Button 
                   type="submit" 
                   className="w-full text-white bg-[#481895]"
+                  disabled={isLoading}
                 >
-                  Sign up
+                   {isLoading ? <Loader2 className="animate-spin w-5 h-5" /> : "Sign Up"}
                 </Button>
 
                 <div className="relative">
@@ -191,7 +218,7 @@ function SignupPage() {
                   type="button"
                   variant="outline"
                   className="w-full"
-                  onClick={() => {handleGoogleSignup()}}
+                  onClick={handleGoogleSignup}
                 >
                   <GoogleIcon />
                   Continue with Google

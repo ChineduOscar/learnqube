@@ -29,10 +29,10 @@ const Header = () => {
 
         <div className='flex items-center gap-4 md:gap-8'>
             <Link href='/login'>
-                <div className='hidden md:block text-[18px] md:text-xl font-bold text-[#481895] hover:text-black'>Login</div>
+                <div className='text-[18px] md:text-xl font-bold text-[#481895] hover:text-black'>Login</div>
             </Link>
             <Link href='/login'>
-              <button className="btn btn-active btn-neutral text-[18px] md:text-xl bg-[#481895] text-white">Get started</button>
+              <button className="hidden md:block btn btn-active btn-neutral text-[18px] md:text-xl bg-[#481895] text-white">Get started</button>
             </Link>
         </div>
     </div>
