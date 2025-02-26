@@ -1,10 +1,16 @@
-import Image from 'next/image'
-import Link from 'next/link'
-import Cookies from 'js-cookie'
-import heroImg from '../assets/heroImage.png'
+'use client'
+import React,{ useState, useEffect } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import Cookies from 'js-cookie';
+import heroImg from '../assets/heroImage.png';
 
 const Hero = () => {
-  const token = Cookies.get('token')
+  const [token, setToken] = useState(null);
+  
+  useEffect(() => {
+    setToken(Cookies.get('token'));
+  }, []);
   
   return (
     <div className="relative w-full flex flex-col md:flex-row items-center justify-between gap-2 md:gap-6 md-12 md:mb-20">
