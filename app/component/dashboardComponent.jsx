@@ -7,6 +7,9 @@ import Link from "next/link";
 import Cookies from "js-cookie";
 import { Lora } from 'next/font/google';
 import logo from '../assets/LearnQube.png';
+import tube1 from '../assets/designThumbnail.jpg';
+import tube2 from '../assets/websiteThumbnail.jpg';
+import tube3 from '../assets/photographyThumbnail.jpg';
 
 const lora = Lora({
   weight: ['400', '700'],
@@ -20,7 +23,6 @@ const DashboardComponent = () => {
   const [userName, setUserName] = useState(null);
   const [userRole, setUserRole] = useState(null);
   const [userEmail, setUserEmail] = useState(null);
-  const [copied, setCopied] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   
   // Sample courses data
@@ -29,19 +31,19 @@ const DashboardComponent = () => {
       id: 1,
       title: "React Crash Course",
       category: "Website Development",
-      thumbnail: "/api/placeholder/400/320"
+      thumbnail: tube1
     },
     {
       id: 2,
       title: "Mastering UI/UX Design",
       category: "Design",
-      thumbnail: "/api/placeholder/400/320"
+      thumbnail: tube2
     },
     {
       id: 3,
       title: "Mastering Portrait Photography",
       category: "Photography",
-      thumbnail: "/api/placeholder/400/320"
+      thumbnail: tube3
     },
   ];
 
