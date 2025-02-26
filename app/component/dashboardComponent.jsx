@@ -199,7 +199,7 @@ const DashboardComponent = () => {
                   {courses.map((course) => (
                     <div key={course.id} className="flex flex-col sm:flex-row bg-gray-50 rounded-lg overflow-hidden transition-transform hover:shadow-md">
                       <div className="sm:w-1/3 h-52 sm:h-auto relative">
-                        <img 
+                        <Image
                           src={course.thumbnail} 
                           alt={course.title} 
                           className="w-full h-full object-cover"
