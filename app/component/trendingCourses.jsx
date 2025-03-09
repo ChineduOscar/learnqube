@@ -6,7 +6,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Cookies from 'js-cookie';
 import getYouTubeThumbnail from '../utils/videoThumnail';
-import axios from 'axios';
 import axiosInstance from '../config';
 
 const TrendingCourses = () => {

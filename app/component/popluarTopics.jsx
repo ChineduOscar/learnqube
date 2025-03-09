@@ -53,7 +53,7 @@ const PopularTopics = () => {
     }, [dispatch]);
     
     return (
-        <div className="w-full px-2 md:px-0">
+        <div className="w-full">
             <div className="flex items-center justify-between mb-4 md:mb-6">
                 <p className="text-[#481895] text-lg md:text-2xl lg:text-3xl font-semibold">Popular Topics</p>
                 <Link href='/categories'>
@@ -68,7 +68,7 @@ const PopularTopics = () => {
                     {Array.from({ length: 8 }).map((_, index) => (
                         <div key={index} className="flex items-center gap-2 md:gap-4 p-3 md:p-6 bg-gray-100 shadow-sm rounded-xl border border-gray-200 animate-pulse">
                             <div className="w-6 h-6 sm:w-8 sm:h-8 md:w-12 md:h-12 lg:w-16 lg:h-16 bg-gray-300 rounded-xl"></div>
-                            <div className="h-3 sm:h-4 md:h-5 lg:h-6 bg-gray-300 rounded-md" style={{ width: '60%' }}></div>
+                            <div className="h-3 sm:h-4 md:h-5 lg:h-6 bg-gray-200 rounded-md" style={{ width: '60%' }}></div>
                         </div>
                     ))}
                 </div>
@@ -88,7 +88,7 @@ const PopularTopics = () => {
                                     className="w-4 h-4 sm:w-5 sm:h-5 md:w-8 md:h-8 lg:w-12 lg:h-12"
                                 />
                             </div>
-                            <p className="text-sm lg:text-base font-semibold text-gray-900">{category.name}</p>
+                            <p className="text-xs lg:text-base font-semibold text-gray-900">{category.name.split(" ")[0]}</p>
                         </div>
                     ))}
                 </div>
