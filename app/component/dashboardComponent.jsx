@@ -1,4 +1,4 @@
-'use client'
+ 'use client'
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Play, LogOut, Mail, Phone, User } from "lucide-react";
@@ -6,9 +6,10 @@ import Image from "next/image";
 import Link from "next/link";
 import Cookies from "js-cookie";
 import { Lora } from 'next/font/google';
-import tube1 from '/designThumbnail.jpg';
-import tube2 from '/websiteThumbnail.jpg';
-import tube3 from '/photographyThumbnail.jpg';
+import getYouTubeThumbnail from '../utils/videoThumnail';
+import tube1 from '../assets/designThumbnail.jpg'
+import logo from '../assets/LearnQube.png';
+import axiosInstance from "../config";
 
 const lora = Lora({
   weight: ['400', '700'],
@@ -23,29 +24,10 @@ const DashboardComponent = () => {
   const [userRole, setUserRole] = useState(null);
   const [userEmail, setUserEmail] = useState(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [enrolledCourses, setEnrolledCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
-  // Sample courses data
-  const courses = [
-    {
-      id: 1,
-      title: "React Crash Course",
-      category: "Website Development",
-      thumbnail: tube1
-    },
-    {
-      id: 2,
-      title: "Mastering UI/UX Design",
-      category: "Design",
-      thumbnail: tube2
-    },
-    {
-      id: 3,
-      title: "Mastering Portrait Photography",
-      category: "Photography",
-      thumbnail: tube3
-    },
-  ];
-
   useEffect(() => {
     const urlToken = searchParams.get("token");
     const urlName = searchParams.get("name");
@@ -93,7 +75,7 @@ const DashboardComponent = () => {
       const storedToken = Cookies.get("token");
       const storedName = Cookies.get("userName");
       const storedRole = Cookies.get("userRole");
-      const storedEmail = Cookies.get("userEmail")
+      const storedEmail = Cookies.get("userEmail");
 
       if (storedToken) {
         setToken(storedToken);
@@ -104,11 +86,66 @@ const DashboardComponent = () => {
     }
   }, [searchParams, router]);
 
+  useEffect(() => {
+    const fetchEnrolledCourses = async () => {
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+      
+      setLoading(true);
+      
+      try {
+        const response = await axiosInstance.get('/courses/enrolled', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        
+        console.log('Enrolled courses response:', response.data);
+        
+        if (response.data.success) {
+          const processedCourses = response.data.enrolledCourses.map(enrollment => {
+            let thumbnail;
+            try {
+              if (enrollment.course.videoUrl) {
+                thumbnail = getYouTubeThumbnail(enrollment.course.videoUrl);
+              }
+            } catch (error) {
+              console.error('Error processing thumbnail:', error);
+            }
+            
+            return {
+              ...enrollment,
+              course: {
+                ...enrollment.course,
+                thumbnail: thumbnail || tube1
+              }
+            };
+          });
+          
+          console.log(processedCourses)
+          setEnrolledCourses(processedCourses);
+          setError(null);
+        } else {
+          setError('Failed to fetch your enrolled courses');
+        }
+      } catch (error) {
+        console.error('Error fetching enrolled courses:', error);
+        setError('Error: ' + (error.response?.data?.message || error.message));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEnrolledCourses();
+  }, [token]);
 
   const handleLogout = () => {
     Cookies.remove('token');
     Cookies.remove('userName');
     Cookies.remove('userRole');
+    Cookies.remove('userEmail');
   
     router.push('/login');
   };
@@ -116,7 +153,6 @@ const DashboardComponent = () => {
   const toggleUserMenu = () => {
     setShowUserMenu(!showUserMenu);
   };
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header Section */}
@@ -187,38 +223,68 @@ const DashboardComponent = () => {
           </div>
         </div>
 
-        {token ? (
+        {loading ? (
+          <div className="bg-white p-8 rounded-xl shadow-sm flex justify-center items-center">
+            <div className="text-center">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-t-[#481895] border-r-[#481895] border-b-transparent border-l-transparent mb-4"></div>
+              <p className="text-lg">Loading your dashboard...</p>
+            </div>
+          </div>
+        ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column */}
             <div className="lg:col-span-2">
               <div className="bg-white p-6 rounded-xl shadow-sm mb-8">
                 <h2 className="text-xl font-bold text-purple-800 mb-6">Your Courses</h2>
                 
-                <div className="grid gap-6">
-                  {courses.map((course) => (
-                    <div key={course.id} className="flex flex-col sm:flex-row bg-gray-50 rounded-lg overflow-hidden transition-transform hover:shadow-md">
-                      <div className="sm:w-1/3 h-52 sm:h-auto relative">
-                        <Image
-                          src={course.thumbnail} 
-                          alt={course.title}
-                          width={300} 
-                          height={200}
-                          className="object-cover"
-                        />
+                {error ? (
+                  <div className="bg-red-50 text-red-700 p-4 rounded-lg mb-4">
+                    <p>{error}</p>
+                  </div>
+                ) : enrolledCourses.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-gray-600 mb-4">You haven't enrolled in any courses yet.</p>
+                    <Link href="/courses">
+                      <div className="inline-block bg-purple-800 text-white py-2 px-6 rounded-md hover:bg-purple-700 transition-colors">
+                        Browse Courses
                       </div>
-                      <div className="sm:w-2/3 p-4 flex flex-col justify-between">
-                        <div>
-                          <span className="text-sm font-medium text-white bg-gray-600 rounded-lg w-fit p-1">{course.category}</span>
-                          <h3 className="text-lg font-semibold mt-2">{course.title}</h3>
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="grid gap-6">
+                    {enrolledCourses.map((enrollment, index) => (
+                      <div key={enrollment.course._id} className="flex flex-col sm:flex-row bg-gray-50 rounded-lg overflow-hidden transition-transform hover:shadow-md">
+                        <div className="sm:w-1/3 h-52 sm:h-auto relative">
+                          <Image
+                            src={enrollment.course.thumbnail || getFallbackThumbnail(index)}
+                            alt={enrollment.course.title}
+                            width={300} 
+                            height={200}
+                            className="object-cover w-full h-full"
+                          />
                         </div>
-                        <button className="mt-4 bg-purple-800 text-white py-2 px-4 rounded-md hover:bg-purple-700 transition-colors flex items-center justify-center">
-                          <Play size={16} className="mr-2 text-white" />
-                          Watch
-                        </button>
+                        <div className="sm:w-2/3 p-4 flex flex-col justify-between">
+                          <div>
+                            <span className="text-sm font-medium text-white bg-gray-600 rounded-lg w-fit p-1">
+                              {enrollment.course.category?.name || "Course"}
+                            </span>
+                            <h3 className="text-lg font-semibold mt-2">{enrollment.course.title}</h3>
+                            <p className="text-sm text-gray-600 mt-1">By {enrollment.course.tutor || "Instructor"}</p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              Enrolled on {new Date(enrollment.purchasedAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <Link href={`/courses/${enrollment.course._id}`}>
+                            <button className="mt-4 bg-purple-800 text-white py-2 px-4 rounded-md hover:bg-purple-700 transition-colors flex items-center justify-center">
+                              <Play size={16} className="mr-2 text-white" />
+                              Watch
+                            </button>
+                          </Link>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
       
                 <div className="mt-6 text-center">
                   <Link href="/courses" className="text-purple-800 font-medium hover:underline">
@@ -265,7 +331,6 @@ const DashboardComponent = () => {
                 </div>
               </div>
               
-              
               {/* Contact Admin Card */}
               <div className="bg-white p-6 rounded-xl shadow-sm">
                 <h2 className="text-xl font-bold text-[#481895] mb-4">Contact Admin</h2>
@@ -297,13 +362,6 @@ const DashboardComponent = () => {
                   </div>
                 </a>
               </div>
-            </div>
-          </div>
-        ) : (
-          <div className="bg-white p-8 rounded-xl shadow-sm flex justify-center items-center">
-            <div className="text-center">
-              <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-t-[#481895] border-r-[#481895] border-b-transparent border-l-transparent mb-4"></div>
-              <p className="text-lg">Loading your dashboard...</p>
             </div>
           </div>
         )}

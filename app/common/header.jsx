@@ -42,7 +42,7 @@ const Header = () => {
                   <User size={20} />
                 </div>
             </Link>
-            <Link href='/login'>
+            <Link href={token ? '/dashboard': '/login'}>
               <button className="hidden md:block btn btn-active btn-neutral text-[18px] md:text-xl bg-[#481895] text-white">Get started</button>
             </Link>
         </div>

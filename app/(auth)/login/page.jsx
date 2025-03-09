@@ -10,11 +10,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Loader2 } from 'lucide-react';
 import Cookies from "js-cookie";
 import logo from '../../assets/LearnQube.png';
 import focused from '../../assets/focused.jpg';
 import GoogleIcon from '../../assets/googleIcon';
-import axiosInstance from '@/app/config';
+import axiosInstance from '../../config';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -37,8 +38,12 @@ export default function LoginPage() {
 
   const handleSubmit = async(e) => {
     e.preventDefault();
+    setIsLoading(true);
     try {
       const response = await axiosInstance.post("/auth/login", formData);
+      if (!response?.data) {
+        throw new Error("Invalid response from server");
+      }
       setIsLoading(false);
       Cookies.set('token', response?.data?.token, { 
         secure: true, 
