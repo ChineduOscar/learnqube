@@ -3,9 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import Image from 'next/image';
 import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import Cookies from 'js-cookie';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import axiosInstance from '../../config'
 import { useRouter, useSearchParams } from 'next/navigation';
 import getYouTubeThumbnail from '../../utils/videoThumnail';
 
@@ -14,11 +16,32 @@ const AllCoursesPage = () => {
     const searchParams = useSearchParams();
     const courses = useSelector((state) => state.courses.courses);
     const [processedCourses, setProcessedCourses] = useState([]);
+    const [loadingCourseId, setLoadingCourseId] = useState(null);
+    const [userEnrolledCourses, setUserEnrolledCourses] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [categories, setCategories] = useState(["All"]);
     const [selectedCategory, setSelectedCategory] = useState("All");
     const [currentPage, setCurrentPage] = useState(1);
     const coursesPerPage = 6;
+    const token = Cookies.get('token');
+    const email = Cookies.get('userEmail');
+
+    useEffect(() => {
+        const fetchUserCourse = async() => {
+            try {
+            const response = await axiosInstance.get('/courses/enrolled', {
+                headers: {
+                Authorization: `Bearer ${token}`
+                }
+            });
+            setUserEnrolledCourses(response?.data?.enrolledCourses || []);
+            } catch(error) {
+            console.log("Error fetching courses", error);
+            }
+        }
+            
+        if (token) fetchUserCourse();
+    }, [token]);
 
     // Extract all unique categories from courses
     useEffect(() => {
@@ -73,6 +96,45 @@ const AllCoursesPage = () => {
     // Handle course click
     const handleCourseClick = (courseId) => {
         router.push(`/courses/${courseId}`);
+    };
+
+    const handlePayment = async (amount, courseId, event) => {
+        console.log(email, amount, courseId)
+        event.stopPropagation();
+        
+        try {
+          setLoadingCourseId(courseId);
+          if (!token) {
+            router.push('/login');
+            return;
+          }
+
+          if (userEnrolledCourses.some(enrolledCourse => 
+            enrolledCourse?.course?._id === courseId)) {
+            router.push('/dashboard');
+            return;
+          }
+          
+          const response = await axiosInstance.post('/pay', {
+            amount,
+            email,
+            courseId,
+          });
+          
+          console.log("Payment response:", response.data);
+    
+          if (response.data.checkoutUrl) {
+            window.location.href = response.data.checkoutUrl;
+          } else {
+            console.log("No checkout URL returned");
+            alert("Could not process payment. Please try again later.");
+          }
+        } catch (error) {
+          console.log("Payment error:", error.response?.data || error.message);
+          alert("Payment initialization failed. Please try again.");
+        } finally {
+          setLoadingCourseId(null);
+        }
     };
 
     return (
@@ -135,12 +197,17 @@ const AllCoursesPage = () => {
                                 <h3 className="text-lg font-semibold text-gray-900 mb-1">{course.title}</h3>
                                 <p className="text-sm text-gray-600 mb-2">By {course.tutor}</p>
                                 <div className="flex justify-between items-center mt-2">
-                                    <span className="font-bold text-[#481895]">${course.price?.toFixed(2) || 'Free'}</span>
-                                    <Button className="bg-[#481895]" onClick={(e) => {
-                                        e.stopPropagation();
-                                        // Add enrollment logic here
-                                    }}>
-                                        Enroll Now
+                                    <span className="font-bold text-[#481895] w-1/2">${course.price?.toFixed(2) || 'Free'}</span>
+                                    <Button 
+                                        className="btn btn-active btn-neutral mt-4 bg-[#481895] text-white py-2 rounded-md text-sm font-medium flex items-center justify-center w-1/2" 
+                                        onClick={(e) => handlePayment(course.price, course._id, e)}
+                                        disabled={loadingCourseId === course._id}
+                                    >
+                                        {loadingCourseId === course._id ? 
+                                            <span className="animate-spin border-4 border-white border-t-transparent rounded-full w-5 h-5"></span>
+                                            : userEnrolledCourses.some(
+                                            enrolledCourse => enrolledCourse?.course?._id === course._id
+                                        ) ? 'Go to Dashboard' : 'Enroll Now'}
                                     </Button>
                                 </div>
                             </CardContent>
