@@ -44,7 +44,7 @@ const TrendingCourses = () => {
         return;
       }
       if (userEnrolledCourses.some(Enrolledcourse => Enrolledcourse?.course?._id === courseId)) {
-        router.push('/dashboard');
+        router.push(`/courses/${courseId}`);
         return;
       }
       const response = await axiosInstance.post('/pay', {

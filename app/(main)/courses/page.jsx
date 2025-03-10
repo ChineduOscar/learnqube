@@ -93,11 +93,6 @@ const AllCoursesPage = () => {
     const currentCourses = filteredCourses.slice(indexOfFirstCourse, indexOfLastCourse);
     const totalPages = Math.ceil(filteredCourses.length / coursesPerPage);
 
-    // Handle course click
-    const handleCourseClick = (courseId) => {
-        router.push(`/courses/${courseId}`);
-    };
-
     const handlePayment = async (amount, courseId, event) => {
         console.log(email, amount, courseId)
         event.stopPropagation();
@@ -111,7 +106,7 @@ const AllCoursesPage = () => {
 
           if (userEnrolledCourses.some(enrolledCourse => 
             enrolledCourse?.course?._id === courseId)) {
-            router.push('/dashboard');
+            router.push(`/courses/${courseId}`);
             return;
           }
           
@@ -177,7 +172,6 @@ const AllCoursesPage = () => {
                         <Card 
                             key={course._id} 
                             className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-                            onClick={() => handleCourseClick(course._id)}
                         >
                             <div className="relative h-48 w-full">
                                 <Image
@@ -207,7 +201,7 @@ const AllCoursesPage = () => {
                                             <span className="animate-spin border-4 border-white border-t-transparent rounded-full w-5 h-5"></span>
                                             : userEnrolledCourses.some(
                                             enrolledCourse => enrolledCourse?.course?._id === course._id
-                                        ) ? 'Go to Dashboard' : 'Enroll Now'}
+                                        ) ? 'Already Enrolled' : 'Enroll Now'}
                                     </Button>
                                 </div>
                             </CardContent>
